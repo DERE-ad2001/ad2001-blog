@@ -15,11 +15,11 @@ const siteMetadata = {
   email: 'ajindeepak0007@gmail.com',
   github: 'https://github.com/DERE-ad2001/',
   // twitter: 'https://twitter.com/ad2001',
-  facebook: 'https://www.facebook.com/i.am.ultralegend/',
+  // facebook: 'https://www.facebook.com/i.am.ultralegend/',
   // youtube: 'https://youtube.com',
   linkedin: 'https://www.linkedin.com/in/ajin-ad2001',
   // threads: 'https://www.threads.net',
-  instagram: 'https://www.instagram.com/hagane_no_rekinjutsushi/',
+  // instagram: 'https://www.instagram.com/hagane_no_rekinjutsushi/',
   locale: 'en-US',
   analytics: {
     // If you want to use an analytics provider you have to add it to the
