@@ -4,7 +4,7 @@ const siteMetadata = {
   author: 'Ajin Deepak',
   headerTitle: 'Blog',
   description:
-    'This is where I share my journey in learning reverse engineering, exploit development, ARM exploitation, and Android security.',
+    'Into the void we delve',
   language: 'en-us',
   theme: 'system', // system, dark or light
   siteUrl: 'https://ad2001.com',
