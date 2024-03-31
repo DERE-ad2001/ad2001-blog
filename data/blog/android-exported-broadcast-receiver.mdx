@@ -79,10 +79,11 @@ The action is like name or description. We can set our broadcast to respond only
 Let's do a small handson exercise to exploit a broadcast receiver.
 
 Consider the below app. I will put the link for this in my github repo.
+![](/static/images/posts/Broadcast/1.png)
 
 This is a timer app let's try it out.
 
-![](/static/images/posts/Broadcast/2.png style="zoom: 50%")
+![](/static/images/posts/Broadcast/2.png)
 
 I'm trying setup a timer for 1 minute. It shows two options 
 
@@ -91,11 +92,11 @@ I'm trying setup a timer for 1 minute. It shows two options
 
 Let's see what the priority timer does.
 
-![](/static/images/posts/Broadcast/3.png style="zoom: 50%")
+![](/static/images/posts/Broadcast/3.png = 100x20)
 
 Oops its disabled. Let's try the normal one.
 
-![](/static/images/posts/Broadcast/4.png  style="zoom: 50%")
+![](/static/images/posts/Broadcast/4.png )
 
 It just toasts the message "Timer completed", after the countdown completes.I specified 0 minute here. 
 
@@ -378,11 +379,11 @@ We have successfully achieved code execution through a exported broadcast receiv
 
 Let's run this app and see if this works.
 
-![](/static/images/posts/Broadcast/9.png" style="zoom: 50%")
+![](/static/images/posts/Broadcast/9.png)
 
 Now let's try using nc in our host.
 
-![](/static/images/posts/Broadcast/10.png" style="zoom: 67%")
+![](/static/images/posts/Broadcast/10.png)
 
 Woah we got the reverse shell.
 
