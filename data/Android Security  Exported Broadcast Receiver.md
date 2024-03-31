@@ -1,8 +1,8 @@
 ---
 
 title: 'Android Security: Exported Broadcast Receiver'
-date: '2021-07-18'
-lastmod: '2021-07-18'
+date: '2024-03-31'
+lastmod: '2024-03-31'
 tags: ['Android', 'Security', 'Broadcast Receiver', 'Exploitation', 'ADB', 'Intent']
 draft: false
 summary: 'This article delves into the concept of exported broadcast receivers in Android, explaining their functionality and potential security risks. Through hands-on exercises and examples, readers learn how to identify and exploit vulnerabilities in exported broadcast receivers, enhancing their understanding of Android security.'
