@@ -104,7 +104,7 @@ Alright now let's examine the code to see if we find anything interesting. For t
 
 Let's first take a look at the manifest file.
 
-![](/static/images/posts/Broadcast/5.png style="zoom: 50%")
+![](/static/images/posts/Broadcast/5.png )
 
 We can see a broadcast receiver called "CountdownReceiver" and it's exported. We also have two actions for this CountdownReceiver.
 
@@ -283,7 +283,7 @@ class MainActivity : AppCompatActivity() {
 
 This will send a broadcast with the action "COUNTDOWN_COMPLETE" and i'm also passing the "getTime" with "0". Let's lauch the app and see if it works.
 
-![](/static/images/posts/Broadcast/6.png" style="zoom: 50%")
+![](/static/images/posts/Broadcast/6.png)
 
 Woah it worked.
 
@@ -325,7 +325,7 @@ Broadcasting: Intent { act=PRIORITY_ACTION flg=0x400000 (has extras) }
 Broadcast completed: result=0
 ```
 
-![](/static/images/posts/Broadcast/7.png" style="zoom: 50%")
+![](/static/images/posts/Broadcast/7.png)
 
 It works! Now, if you examine the `exec` command, you can identify a vulnerability. It simply takes the value from the variable `startTime`, passed from the extra `getTime`, without any validation. This could lead to `command injection`. I can use `;` to insert a new command.
 
@@ -339,7 +339,7 @@ So let's try to inject a simple command to see if it's vulnerable using adb. I w
 adb shell am broadcast -a PRIORITY_ACTION --es getTime "0;touch /data/data/com.android.timer/files/nji.txt" --es key "priority"
 ```
 
-![](/static/images/posts/Broadcast/8.png" style="zoom: 67%")
+![](/static/images/posts/Broadcast/8.png)
 
 Woah!! The file `nji.txt` got created. Now let's create an app to do this.
 
