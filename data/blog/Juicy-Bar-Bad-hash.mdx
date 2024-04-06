@@ -1,0 +1,112 @@
+---
+title: "Android CTF Juicy Bar::Bad hash"
+date: "2024-04-06"
+lastmod: "2024-04-06"
+tags: ['Android Security', 'Juicy Bar', 'Reverse Engineering', 'Writeup']
+draft: false
+summary: "This article is a write-up of the Bad hash challenge in the Android CTF Juicy Bar."
+images: ['/static/images/canada/mountains.jpg', '/static/images/canada/toronto.jpg']
+authors: ['default']
+layout: PostLayout
+canonicalUrl: https://ad2001.com/blog/juicy-bar-badhash
+
+---
+
+Hey all,
+
+Let's continue with our Juicy Bar series. If you're new here, feel free  to check out our other write-ups. However, I suggest that you try to  solve it on your own before proceeding.
+
+https://juicy.barsk.xyz
+
+### Challenge
+
+We will solve the bad hash challenge this time. To complete this challenge we need to get two flags. Okay let's start.
+
+### Flag One
+
+Let's take a look at the hints.
+
+![](/static/images/posts/bad-hash/1.png)
+
+Okay so it's clear that we need to look for a hash value in the decompiled source code.
+
+![](/static/images/posts/bad-hash/2.png)
+
+In the method flagOneValid we can see a hash value let's copy and paste that to crackstation.
+
+![](/static/images/posts/bad-hash/3.png)
+
+Nice we got the result as 'password123'. Let's take a look at the flagOneValid method again.
+
+```java
+  public final boolean flagOneValid(String str) {
+      return i.a(a.h(str.concat("123")),"ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f");
+    }
+
+
+```
+
+What's happening here is that the string you entered through the 'Validate Secret' dialog box is concatenated with "123" at the end and then compared with the SHA-256 hash value. We know the hash value corresponds to 'password123'. Therefore, you only need to input 'password' as the secret. It will then be concatenated with '123', the comparison will succeed, and the function will return true. So, let's try entering `password` to ensure that it gives us the flag.
+
+![](/static/images/posts/bad-hash/4.png)
+
+Okay nice, we got the first flag. Now let's get the second one.
+
+### Flag Two
+
+![](/static/images/posts/bad-hash/5.png)
+
+CRC, or Cyclic Redundancy Check, is a type of checksum used for error detection. CRC32 is particularly popular due to its effectiveness and widespread use. Anyways let's check the code in jadx.
+
+```java
+    public final boolean flagTwoValid(String str) {
+        if (str.length() != 4) {
+            return false;
+        }
+        CRC32 crc32 = new CRC32();
+        crc32.update(str.getBytes(da.a.f3462b));
+        long value = crc32.getValue();
+        d.p(16);
+        return value == Long.parseLong("2ffbab17", 16);
+    }
+
+```
+
+We can see a hexadecimal value here, `2ffbab17`. This is the CRC32 value.
+
+To solve this we will using this tool :
+
+https://github.com/fyxme/crc-32-hash-collider/tree/master
+
+Now we should edit the source to add our value.
+
+```
+// target CRC-32
+// & 0xffffffff is to convert to uint
+// required since old python versions allowed negative values to be produced
+// hence its needed if you want to find a collision for a "negative" crc hash value
+const target = -432570933 & 0xffffffff
+
+// max string length
+maxLen := 5
+```
+
+Our value is `2ffbab17` ,let's use that.
+
+![](/static/images/posts/bad-hash/6.png)
+
+Now let's run this using the below command.
+
+```
+ go run collide.go
+```
+
+It might take some time.
+
+![](/static/images/posts/bad-hash/7.png)
+
+Okay we found a collision. Let's try this string.
+
+![](/static/images/posts/bad-hash/8.png)
+
+Nice. It worked so we got our second flag. The challenge is complete :)
