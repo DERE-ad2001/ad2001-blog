@@ -1,0 +1,49 @@
+---
+title: "Android Juicy Bar::Code Obfuscation"
+date: "2024-04-06"
+lastmod: "2024-04-06"
+tags: ['Android', 'Security', 'Juicy', 'Bar', 'Reverse Engineering', 'Writeup']
+draft: false
+summary: "This article is the write-up of the code obfuscation challenge of the Android CTF Juicy Bar."
+images: ['/static/images/canada/mountains.jpg', '/static/images/canada/toronto.jpg']
+authors: ['default']
+layout: PostLayout
+canonicalUrl: https://ad2001.com/blog/juicy-bar-code-obfuscation
+
+---
+
+Welcome all,
+
+I wanted to do a **quick writeup** series on the android ctf application called juicy bar. If you haven't tried it out yet please check it out. It's really nice and beginner friendly.
+
+https://juicy.barsk.xyz/
+
+I will try to cover most of the challenges, but this will be very random. I won't be following any particular order. Okay, let's get on with the challenge already.
+
+![](/Users/ajindeepak/Desktop/BLOGS/JuicyBar/Code obfuscation/Images/1.png)
+
+We need two flags to complete this challenge. If you look at the hints, it says to use Jadx and look for an exception that may be thrown for a lateinit variable. Let's load the APK in the JADX.
+
+![2](/Users/ajindeepak/Desktop/BLOGS/JuicyBar/Code obfuscation/Images/2.png)
+
+This is the responsible class for this challenge. So let's examine the code based on the hints we got. Let's search for "throw".
+
+![](/Users/ajindeepak/Desktop/BLOGS/JuicyBar/Code obfuscation/Images/3.png)
+
+Okay we got something. Let's try pasting that string "scrtPreObfuscationVar".
+
+![](/Users/ajindeepak/Desktop/BLOGS/JuicyBar/Code obfuscation/Images/4.png)
+
+If you check the Logcat now, you should have received the flag. Okay now let's check the hints for the second flag.
+
+![](/Users/ajindeepak/Desktop/BLOGS/JuicyBar/Code obfuscation/Images/5.png)
+
+Let's check for the toString() method.
+
+![](/Users/ajindeepak/Desktop/BLOGS/JuicyBar/Code obfuscation/Images/6.png)
+
+Hmmm. This string "scrtLeakedByToString" looks interesting let's try that.
+
+![](/Users/ajindeepak/Desktop/BLOGS/JuicyBar/Code obfuscation/Images/7.png)
+
+Yes!! We got the second flag. The challenge is now completed.
