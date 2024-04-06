@@ -25,6 +25,8 @@ I will try to cover most of the challenges, but this will be very random. I won'
 
 We need two flags to complete this challenge. If you look at the hints, it says to use Jadx and look for an exception that may be thrown for a lateinit variable. Let's load the APK in the JADX.
 
+###Flag One
+
 ![](/static/images/posts/code-obfuscation/2.png)
 
 This is the responsible class for this challenge. So let's examine the code based on the hints we got. Let's search for "throw".
@@ -36,6 +38,8 @@ Okay we got something. Let's try pasting that string "scrtPreObfuscationVar".
 ![](/static/images/posts/code-obfuscation/4.png)
 
 If you check the Logcat now, you should have received the flag. Okay now let's check the hints for the second flag.
+
+###Flag Two
 
 ![](/static/images/posts/code-obfuscation/5.png)
 
