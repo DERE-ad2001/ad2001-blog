@@ -1,0 +1,385 @@
+---
+title: "Android CTF Juicy Bar::Reverse Engineering"
+date: "2024-04-07"
+lastmod: "2024-04-07"
+tags: ['Android Security', 'Juicy Bar', 'Reverse Engineering', 'Writeup']
+draft: false
+summary: "This article is a write-up of the Reverse Engineering challenge in the Android CTF Juicy Bar."
+images: ['/static/images/canada/mountains.jpg', '/static/images/canada/toronto.jpg']
+authors: ['default']
+layout: PostLayout
+canonicalUrl: https://ad2001.com/blog/juicy-bar-re
+---
+
+Hey all,
+
+Let's continue with our walkthrough of Juicy Bar. If you're new here, try checking out other blogs and take the challenge before reading this.
+
+https://juicy.barsk.xyz/
+
+To complete this challenge we need to find four flags. Let's start with the first flag.
+
+### Flag One
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\1.png)
+
+The hint says nothing much. Let's use jadx.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\2.png)
+
+If you check the decompiled code, you'll see a method `flagOneValid` that is used to validate the flag. It takes the text entered through the "Validate Secret" dialogue box, encodes it into a Base64 string, and then compares it to the Base64 string `YWxsIHlvdXIgYmFzZSBhcmUgYmVsb25nIHRvIHVz`.
+
+Let's decode this string.
+
+```
+ad2001@pop-os:~/Desktop$ echo "YWxsIHlvdXIgYmFzZSBhcmUgYmVsb25nIHRvIHVz" | base64 -d
+all your base are belong to us
+ad2001@pop-os:~/Desktop$
+```
+
+Okay let's use this to get the flag.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\3.png)
+
+Alright we got the first flag. 
+
+### Flag Two
+
+```java
+    public final boolean flagTwoValid(String str) {
+        StringBuilder sb = new StringBuilder();
+        int length = str.length();
+        for (int i2 = 0; i2 < length; i2++) {
+            char charAt = str.charAt(i2);
+            if (i.b(charAt, 97) < 0 || i.b(charAt, 122) > 0) {
+                return false;
+            }
+            int i10 = (charAt - 'a') * 4;
+            sb.append(".-..-...-.-.-..-.---..-.--.....-..--.--.-.--.-..-----.-----..--.--.-.-.-....-.....--...-.--.-..--.----..".substring(i10, i10 + 4));
+        }
+        return i.a(sb.toString(), "....-------..-.-.---....");
+    }
+
+
+```
+
+
+
+This function, `flagTwoValid`, validates the second flag. The hint indicates that this is not Morse code. Let's check what this function actually does; it seems like it is performing some kind of string transformation.
+
+1. **Setup**: It starts by preparing to build a new string piece by piece.
+
+   `        StringBuilder sb = new StringBuilder();`
+
+2. **Checking Each Character**: The method looks at each character in the input string one by one. It only allows lowercase letters from 'a' to 'z'. If it finds any other type of character, it stops and says the string is not valid.
+
+   ```
+   ` for (int i2 = 0; i2 < length; i2++) {
+               char charAt = str.charAt(i2);
+               if (i.b(charAt, 97) < 0 || i.b(charAt, 122) > 0) {
+                   return false;
+               }`
+   ```
+
+   
+
+3. **Encoding Characters**: For characters that are allowed, it changes each one into a special code. This code is picked from a long, fixed string based on the character's position in the alphabet. The code calculates the starting index of each segment by taking the  character's ASCII value, subtracting the ASCII value for 'a', and  multiplying the result by 4. This index is used to fetch a specific  4-character segment from the hardcoded string to represent each letter  in the input string. Like this,
+
+   ```
+              int i10 = (charAt - 'a') * 4;
+               sb.append(".-..-...-.-.-..-.---..-.--.....-..--.--.-.--.-..-----.-----..--.--.-.-.-....-.....--...-.--.-..--.----..".substring(i10, i10 + 4));
+           }
+   ```
+
+   ```
+       'a' -> ".-.."
+       'b' -> "-..."
+       'c' -> "-.-."
+       'd' -> "-..-"
+   ```
+
+4. **Final Check**: After changing all the characters into this special code, it checks if the resulting coded string matches a specific, expected code.
+
+   ```
+   	return i.a(sb.toString(), "....-------..-.-.---....");
+   ```
+
+If everything matches up, it says the string is valid and we will get the flag. So i just used chatgpt to give the pattern for the corresponding characters (a-z).
+
+```
+    'a' -> ".-.."
+    'b' -> "-..."
+    'c' -> "-.-."
+    'd' -> "-..-"
+    'e' -> ".---"
+    'f' -> "..-."
+    'g' -> "--.."
+    'h' -> "...-"
+    'i' -> "..--"
+    'j' -> ".--."
+    'k' -> "-.--"
+    'l' -> ".-.."
+    'm' -> "----"
+    'n' -> "-.--"
+    'o' -> "---."
+    'p' -> ".--."
+    'q' -> "--.-"
+    'r' -> ".-.-"
+    's' -> "...."
+    't' -> "-..."
+    'u' -> "..--"
+    'v' -> "...-"
+    'w' -> ".--."
+    'x' -> "-..-"
+    'y' -> "-.--"
+    'z' -> "--.."
+```
+
+Below is the pattern against which our converted input is checked.
+
+```
+....-------..-.-.---....
+```
+
+Let's divide and separate it by 4.
+
+```
+....
+----
+---.
+.-.-
+.---
+....
+```
+
+Now we can easily figure out the characters by mapping this.
+
+```
+....	-> s
+----	-> m
+---.	-> o
+.-.-	-> r
+.---	-> e
+....	-> s
+```
+
+Okay, we have got the secret: smores. Let's see if this works.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\4.png)
+
+Woah we got our second flag. Let's find the third flag.
+
+### Flag Three
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\5.png)
+
+Let check the decompiled source code.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\6.png)
+
+The method `eval()` is called with the argument `this.f8050e` . Let's check what's in `f8050e`.
+
+```java
+public final String f8050e = "#!/bin/bash   \t\t\t  \t\t\na=95\t\nb=93     \t\t\t    \nc=bashy\t\nfor i in 1 4 2;\tdo\t    \t\n\t\nif [ $(($a-$i)) -lt $(($b+$i)) ];\tthen\t   \t\t\n\tc=$c$i\nelse     \t\t\t\t  \t\n\tc=$c\"_\"\nfi  \ndone\n{echo,$c}\n";
+```
+
+It looks to be a bash script, but the hint indicates that it is not. Let's check the `eval()` method.
+
+```java
+    public final String eval(String str) {
+        if (str.isEmpty()) {
+            throw new IllegalStateException("Code empty");
+        }
+        String replaceAll = str.replaceAll("[^\\t\\s\\n]", "");
+        return b.a(replaceAll != null ? replaceAll.replace(' ', 's').replace('\t', 't').replace('\n', 'n') : null, new d());
+    }
+
+
+```
+
+The `eval` method first checks if the input string is not empty, then uses a regular  expression to filter out all characters except whitespace, spaces, tabs,  and newline characters. These remaining whitespace characters are  converted into specific letters: spaces to 's', tabs to 't', and  newlines to 'n'. This transformed string, now simplified to a sequence  of 's', 't', and 'n'.  Let's use chat-gpt to generate a python script to replicate this function.
+
+```python
+import re
+
+# The bash-like script as a string
+bash_script = """
+#!/bin/bash   \t\t\t  \t\t\na=95\t\nb=93     \t\t\t    \nc=bashy\t\nfor i in 1 4 2;\tdo\t    \t\n\t\nif [ $(($a-$i)) -lt $(($b+$i)) ];\tthen\t   \t\t\n\tc=$c$i\nelse     \t\t\t\t  \t\n\tc=$c\"_\"\nfi  \ndone\n{echo,$c}\n
+"""
+
+bash_script_sanitized = re.sub(r'[^\t\s\n]', '', bash_script)
+bash_script_transformed = bash_script_sanitized.replace(' ', 's').replace('\t', 't').replace('\n', 'n')
+print(bash_script_transformed)
+
+```
+
+If you run this using a Python interpreter, you get the following output:
+
+```
+
+nssstttssttntnssssstttssssntnsssssttsssstntnsssssttsssttntnsssssttttsstntnssnnnn
+```
+
+After some googling, as mentioned in the hints, I find that this refers to the Whitespace programming language.
+
+https://en.wikipedia.org/wiki/Whitespace_(programming_language)
+
+The `n` represents a newline, `s` for a single space, and `t` for a tab space. I tried execute this using [this](https://www.tutorialspoint.com/execute_whitespace_online.php) online compiler, but it requires a specific format, so it doesn't work. So let's look for other online compilers.
+
+https://ideone.com/
+
+This is interesting, but it requires actual whitespace characters  instead of 's', 'n', and 't'. So, let's do one thing: let's edit the  Python script to get the whitespace output. It may seem ridiculous, but  let's try.
+
+```python
+
+import re
+bash_script = """
+#!/bin/bash   \t\t\t  \t\t\na=95\t\nb=93     \t\t\t    \nc=bashy\t\nfor i in 1 4 2;\tdo\t    \t\n\t\nif [ $(($a-$i)) -lt $(($b+$i)) ];\tthen\t   \t\t\n\tc=$c$i\nelse     \t\t\t\t  \t\n\tc=$c\"_\"\nfi  \ndone\n{echo,$c}\n
+"""
+bash_script_sanitized = re.sub(r'[^\t\s\n]', '', bash_script)
+print(bash_script_sanitized)
+```
+
+Let's run this and get the output.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\7.png)
+
+Okay we can see a lot of whitespaces. Let's copy that and paste it into the online compiler.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\8.png)
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\9.png)
+
+Okay let's run this.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\10.png)Oops, we got an error. This is because when we copied from the output, it included unnecessary spaces in addition to the intended output. Let's fix that. For this i'm going to use sublime.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\11.png)
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\12.png)
+
+This time we got the output "spacy." Let's try this and see if we get the flag.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\13.png)
+
+Okay nice. Let's move on to the final flag.
+
+### Flag Four
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\14.png)
+
+The hint suggests that the code for validating the flag is dynamically loaded from a dex file and the dex file is encrypted using AES. Let's first find the dex file.
+
+
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\15.png)
+
+We can easily find this under `Resources` -> `assets` -> `files`. However, we need to extract this file from the APK. Let's try that. You can use APKTool, or simply change the `.apk` extension to `.zip` and extract it. I'm going to use apktool.
+
+```
+C:\Users\ajind\Downloads\APK Easy Tool v1.60 Portable\Apktool>java -jar apktool_2.9.3.jar  d JuicyBar_1.0.apk
+I: Using Apktool 2.9.3 on JuicyBar_1.0.apk
+I: Loading resource table...
+I: Decoding file-resources...
+I: Loading resource table from file: C:\Users\ajind\AppData\Local\apktool\framework\1.apk
+I: Decoding values */* XMLs...
+I: Decoding AndroidManifest.xml with resources...
+I: Regular manifest package...
+I: Baksmaling classes.dex...
+
+```
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\16.png)
+
+Now we have the file, what's next ? Let's try to view the contents in the file.
+
+```
+
+C:\Users\ajind\Downloads\APK Easy Tool v1.60 Portable\Apktool\JuicyBar_1.0\assets\files>type dexterity
+Ae±g4Y└²l╟|¬╜óluì*Q≤ª,`Bu╗C┴Θ∞P7ºjslhÖ⌐╔α4╧
+ndq₧0¡O╓`°^╬▒¿─┬[╗:⌠╖┬^ΦW₧üΩà6▓qVÑq▌±[ÖΣä₧═"├R≈\i1nóΓ9N≈≈içµ»ÄK|u]Y 2ì▀┬ô╩>╕azΘjTèÜfeA|╠_┴xKò"╖4^j+5·═nPεì_sÆu
+t║!D▒6└└£
+C:\Users\ajind\Downloads\APK Easy Tool v1.60 Portable\Apktool\JuicyBar_1.0\assets\files>
+
+
+```
+
+Ah, it's encrypted using AES, just as we expected. Okay, let's find the key and IV for decrypting this. The hint mentioned that they are hardcoded in the app.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\17.png)
+
+Okay from here we can easily get the key and IV.
+
+Here is the array of signed bytes for the Initialization Vector (IV),
+
+```
+{-103, Byte.MIN_VALUE, -119, 44, -102, 56, 61, 64, -35, 77, 65, -95, 79, -71, -35, -61}
+```
+
+In Java, `Byte.MIN_VALUE` is a constant representing the minimum value a byte can hold, which is -128. Therefore, the array becomes:
+
+```
+{-103, -128, -119, 44, -102, 56, 61, 64, -35, 77, 65, -95, 79, -71, -35, -61}
+```
+
+So the key is `juicy decryption` and the IV is `-103, -128, -119, 44, -102, 56, 61, 64, -35, 77, 65, -95, 79, -71, -35, -61`. 
+
+However, the IV bytes are signed, meaning they range from -128 to 127.  Let's convert this to hex. For this i will use chatgpt.
+
+```python
+signed_bytes = [-103, -128, -119, 44, -102, 56, 61, 64, -35, 77, 65, -95, 79, -71, -35, -61]
+hex_values = [hex(byte & 0xFF)[2:].zfill(2) for byte in signed_bytes]
+print(hex_values)
+
+```
+
+This script was generated by chatgpt if you run this you will get the following output.
+
+```
+['99', '80', '89', '2c', '9a', '38', '3d', '40', 'dd', '4d', '41', 'a1', '4f', 'b9', 'dd', 'c3']
+```
+
+So the IV is `9980892c9a383d40dd4d41a14fb9ddc3`.
+
+Okay, now we have everything. Let's decrypt the dex file. For this, you can write a script or use CyberChef. I will be using CyberChef.
+
+https://gchq.github.io/CyberChef
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\18.png)
+
+The decryption process was successful. Now let's download the decrypted dex file and load that into jadx.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\19.png)
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\20.png)
+
+Nice, we can now see the decompiled code. This is the validate method that's used to check the secret we enter through the dialogue box. This method converts the string into an integer.The string must be a number between 0 and  1000. Next, this number must leave a remainder of 3 when divided by 13.  If both these conditions are met, the method finally checks if dividing  the number by 23 leaves a remainder of 13. If all conditions are  satisfied, the method returns `true`, else it will return `false`. We can simply do a bruteforce to find this value we can write a python script for this.
+
+```python
+def find_valid_number():
+    for num in range(0, 1001):
+        if num % 13 == 3:
+            if num % 23 == 13:
+                return num  
+    return None  
+
+valid_number = find_valid_number()
+if valid_number is not None:
+    print(f"The number is: {valid_number}")
+else:
+    print("No valid number")
+```
+
+Let's run this.
+
+```
+The number is: 289
+
+=== Code Execution Successful ===
+```
+
+Let's check if this number is correct or not.
+
+![](D:\Blogs\Juicy Bar\Reverse Engineering\reverse-engineering\21.png)
+
+At last, we got our final flag! We have now successfully retrieved all four flags.
