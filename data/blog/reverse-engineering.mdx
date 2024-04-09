@@ -74,11 +74,11 @@ This function, `flagTwoValid`, validates the second flag. The hint indicates tha
 2. **Checking Each Character**: The method looks at each character in the input string one by one. It only allows lowercase letters from 'a' to 'z'. If it finds any other type of character, it stops and says the string is not valid.
 
    ```
-   ` for (int i2 = 0; i2 < length; i2++) {
-               char charAt = str.charAt(i2);
-               if (i.b(charAt, 97) < 0 || i.b(charAt, 122) > 0) {
-                   return false;
-               }`
+ for (int i2 = 0; i2 < length; i2++) {
+ char charAt = str.charAt(i2);
+ if (i.b(charAt, 97) < 0 || i.b(charAt, 122) > 0) {
+        return false;
+    }
    ```
 
    
